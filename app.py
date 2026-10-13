@@ -299,7 +299,7 @@ with st.sidebar:
 # --------------------------------------------------
 
 if page == "Overview":
-    st.image("faultline_logo.png", width=38)
+    st.image("faultline_logo.png", width=42)
     st.markdown(
         '<p class="eyebrow">SOFTWARE RELIABILITY LAB</p>',
         unsafe_allow_html=True,
