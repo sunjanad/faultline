@@ -1,4 +1,3 @@
-
 import json
 
 import pandas as pd
@@ -14,7 +13,7 @@ from faultline_engine import (
 
 st.set_page_config(
     page_title="Faultline",
-    page_icon="⌁",
+    page_icon="faultline_logo.png",
     layout="wide",
     initial_sidebar_state="expanded",
 )
