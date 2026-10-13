@@ -14,7 +14,18 @@ import random
 import time
 
 
-VERSION = "0.3.0"
+VERSION = "0.4.0"
+
+# These pairs represent ordered values whose boundary matters.
+BOUNDARY_PAIRS = (
+    ("distance_low", "distance_high"),
+    ("priority_low", "priority_high"),
+)
+
+# A narrow interval is preferred when simplifying a monotonicity
+# counterexample. This weight is part of a heuristic, not a proof
+# of human readability or global minimality.
+BOUNDARY_WEIGHT = 100
 
 
 def fingerprint(value):
@@ -25,17 +36,35 @@ def fingerprint(value):
 
 def complexity(value):
     """
-    Estimate structural and numeric complexity.
+    Estimate the complexity of a test case.
 
-    Dictionary keys are excluded because the keys describe the
-    fixed input structure, not the values being minimized.
-    This score is a heuristic, not a measure of readability.
+    Numeric values and structures contribute to the base score.
+    Ordered boundary pairs receive an additional penalty for
+    interval width, encouraging smaller counterexample intervals.
+
+    Lower scores are preferred by the shrinker. This remains a
+    heuristic and does not guarantee the most readable example.
     """
     if isinstance(value, bool):
         return 1
 
     if isinstance(value, dict):
-        return sum(complexity(v) for v in value.values())
+        score = sum(complexity(v) for v in value.values())
+
+        for low_key, high_key in BOUNDARY_PAIRS:
+            low = value.get(low_key)
+            high = value.get(high_key)
+
+            if (
+                isinstance(low, (int, float))
+                and not isinstance(low, bool)
+                and isinstance(high, (int, float))
+                and not isinstance(high, bool)
+                and high >= low
+            ):
+                score += BOUNDARY_WEIGHT * (high - low)
+
+        return score
 
     if isinstance(value, list):
         return len(value) + sum(complexity(v) for v in value)
@@ -358,8 +387,29 @@ def numeric_reductions(number):
 
 
 def simplify_candidates(value):
-    """Generate structural and numeric simplifications."""
+    """
+    Generate structural and numeric simplifications.
+
+    For ordered boundary pairs, also try moving the lower value
+    to immediately below the upper value. This can make a
+    counterexample more precise even when the lower value rises.
+    """
     if isinstance(value, dict):
+        for low_key, high_key in BOUNDARY_PAIRS:
+            low = value.get(low_key)
+            high = value.get(high_key)
+
+            if (
+                isinstance(low, int)
+                and not isinstance(low, bool)
+                and isinstance(high, int)
+                and not isinstance(high, bool)
+                and high > low + 1
+            ):
+                candidate = dict(value)
+                candidate[low_key] = high - 1
+                yield candidate
+
         for key, old in value.items():
             for smaller in numeric_reductions(old):
                 candidate = dict(value)
@@ -551,7 +601,9 @@ def result_to_dict(result):
             "Built-in example systems contain deliberate defects.",
             "Results depend on the specified properties.",
             "Shrinking is greedy and bounded.",
-            "Complexity is a heuristic, not a human readability measure.",
+            "Complexity includes a boundary-width heuristic for "
+            "ordered distance and priority inputs.",
+            "Complexity is not a direct measure of human readability.",
             "Passing tests do not prove defect-free behavior.",
             "Runtime measures experiment checking and shrinking, "
             "not the initial generation of all test cases.",
