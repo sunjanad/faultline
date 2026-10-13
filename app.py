@@ -19,31 +19,101 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-.stApp { background: #101110; color: #eeeeea; }
-[data-testid="stSidebar"] {
-    background: #171917;
-    border-right: 1px solid #30342d;
+
+<style>
+.stApp {
+    background-color: #101110;
+    color: #f5f5f0;
 }
-h1, h2, h3 { letter-spacing: -0.04em; }
-.eyebrow {
-    color: #b7ff3c;
+
+[data-testid="stSidebar"] {
+    background-color: #191c18;
+    border-right: 1px solid #41463d;
+}
+
+.stApp, .stApp p, .stApp li,
+.stApp label, .stApp .stMarkdown,
+.stApp [data-testid="stCaptionContainer"] {
+    color: #f0f1eb;
+}
+
+.stApp h1, .stApp h2, .stApp h3 {
+    color: #ffffff;
+    letter-spacing: -0.03em;
+}
+
+.stApp .eyebrow {
+    color: #c8ff63;
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.16em;
 }
-.panel {
-    background: #191c18;
-    border: 1px solid #30342d;
-    border-radius: 12px;
-    padding: 18px;
+
+.stApp .muted {
+    color: #c2c7bd;
 }
-.muted { color: #a5aaa0; }
-div.stButton > button[kind="primary"] {
-    background: #b7ff3c;
+
+.stApp [data-testid="stCaptionContainer"] p,
+.stApp .stCaption {
+    color: #c2c7bd;
+}
+
+.stApp [data-testid="stMetricLabel"],
+.stApp [data-testid="stMetricValue"],
+.stApp [data-testid="stMetricDelta"] {
+    color: #f5f5f0;
+}
+
+.stApp [data-testid="stAlert"] {
+    background-color: #20251d;
+    border: 1px solid #59634b;
+}
+
+.stApp [data-testid="stAlert"] p {
+    color: #f5f5f0;
+}
+
+.stApp input, .stApp textarea {
+    background-color: #20231f;
+    color: #ffffff;
+    border-color: #697061;
+}
+
+.stApp [data-baseweb="select"] > div {
+    background-color: #20231f;
+    color: #ffffff;
+    border-color: #697061;
+}
+
+.stApp [data-baseweb="select"] * {
+    color: #ffffff;
+}
+
+.stApp div.stButton > button[kind="primary"] {
+    background-color: #c8ff63;
     color: #101110;
-    border: 0;
+    border: 1px solid #c8ff63;
     font-weight: 700;
 }
+
+.stApp div.stButton > button[kind="secondary"],
+.stApp div.stDownloadButton > button {
+    background-color: #252923;
+    color: #ffffff;
+    border: 1px solid #737b6a;
+}
+
+.stApp div.stButton > button:hover,
+.stApp div.stDownloadButton > button:hover {
+    border-color: #c8ff63;
+    color: #c8ff63;
+}
+
+.stApp [data-testid="stDataFrame"] {
+    border: 1px solid #41463d;
+}
+</style>
+
 </style>
 """, unsafe_allow_html=True)
 
