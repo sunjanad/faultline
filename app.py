@@ -144,11 +144,15 @@ st.markdown(
     }
 
     /* Buttons */
-    .stApp div.stButton > button[kind="primary"] {
-        background-color: #b7ff3c !important;
-        color: #101110 !important;
-        border: 1px solid #b7ff3c !important;
-        font-weight: 700;
+    .stApp div.stButton > button[kind="primary"],
+.stApp div.stButton > button[kind="primary"] p,
+.stApp div.stButton > button[kind="primary"] span {
+    background-color: #b7ff3c !important;
+    color: #101110 !important;
+    -webkit-text-fill-color: #101110 !important;
+    border: 1px solid #b7ff3c !important;
+    font-weight: 700;
+    
     }
 
     .stApp div.stButton > button[kind="secondary"],
