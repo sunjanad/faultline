@@ -1,7 +1,8 @@
 
 import json
-import streamlit as st
+
 import pandas as pd
+import streamlit as st
 
 from faultline_engine import (
     VERSION,
@@ -10,6 +11,7 @@ from faultline_engine import (
     result_to_dict,
 )
 
+
 st.set_page_config(
     page_title="Faultline",
     page_icon="⌁",
@@ -17,105 +19,199 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown("""
-<style>
+# --------------------------------------------------
+# VISUAL DESIGN
+# --------------------------------------------------
 
-<style>
-.stApp {
-    background-color: #101110;
-    color: #f5f5f0;
-}
+st.markdown(
+    """
+    <style>
+    /* Main application backgrounds */
+    .stApp,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMain"],
+    [data-testid="stMainBlockContainer"],
+    section[data-testid="stMain"] {
+        background-color: #101110 !important;
+        color: #eeeeea !important;
+    }
 
-[data-testid="stSidebar"] {
-    background-color: #191c18;
-    border-right: 1px solid #41463d;
-}
+    .stApp {
+        color: #eeeeea;
+    }
 
-.stApp, .stApp p, .stApp li,
-.stApp label, .stApp .stMarkdown,
-.stApp [data-testid="stCaptionContainer"] {
-    color: #f0f1eb;
-}
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #171917 !important;
+        border-right: 1px solid #30342d;
+    }
 
-.stApp h1, .stApp h2, .stApp h3 {
-    color: #ffffff;
-    letter-spacing: -0.03em;
-}
+    [data-testid="stSidebar"] > div {
+        background-color: #171917 !important;
+    }
 
-.stApp .eyebrow {
-    color: #c8ff63;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-}
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] span {
+        color: #eeeeea;
+    }
 
-.stApp .muted {
-    color: #c2c7bd;
-}
+    /* Headings and normal text */
+    .stApp h1,
+    .stApp h2,
+    .stApp h3 {
+        color: #f5f5f0 !important;
+        letter-spacing: -0.035em;
+    }
 
-.stApp [data-testid="stCaptionContainer"] p,
-.stApp .stCaption {
-    color: #c2c7bd;
-}
+    .stApp p,
+    .stApp li,
+    .stApp label,
+    .stApp [data-testid="stMarkdownContainer"] {
+        color: #eeeeea;
+    }
 
-.stApp [data-testid="stMetricLabel"],
-.stApp [data-testid="stMetricValue"],
-.stApp [data-testid="stMetricDelta"] {
-    color: #f5f5f0;
-}
+    /* Brand accent */
+    .eyebrow {
+        color: #b7ff3c !important;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+    }
 
-.stApp [data-testid="stAlert"] {
-    background-color: #20251d;
-    border: 1px solid #59634b;
-}
+    /* Secondary text */
+    .stApp [data-testid="stCaptionContainer"],
+    .stApp [data-testid="stCaptionContainer"] p,
+    .stApp .stCaption {
+        color: #b9beb3 !important;
+    }
 
-.stApp [data-testid="stAlert"] p {
-    color: #f5f5f0;
-}
+    /* Content panels */
+    .panel {
+        background-color: #191c18;
+        border: 1px solid #383d34;
+        border-radius: 12px;
+        padding: 18px;
+    }
 
-.stApp input, .stApp textarea {
-    background-color: #20231f;
-    color: #ffffff;
-    border-color: #697061;
-}
+    /* Dividers */
+    .stApp hr {
+        border-color: #383d34;
+    }
 
-.stApp [data-baseweb="select"] > div {
-    background-color: #20231f;
-    color: #ffffff;
-    border-color: #697061;
-}
+    /* Metrics */
+    .stApp [data-testid="stMetric"],
+    .stApp [data-testid="stMetricLabel"],
+    .stApp [data-testid="stMetricValue"],
+    .stApp [data-testid="stMetricDelta"] {
+        color: #eeeeea !important;
+    }
 
-.stApp [data-baseweb="select"] * {
-    color: #ffffff;
-}
+    .stApp [data-testid="stMetricLabel"] *,
+    .stApp [data-testid="stMetricValue"] * {
+        color: #eeeeea !important;
+    }
 
-.stApp div.stButton > button[kind="primary"] {
-    background-color: #c8ff63;
-    color: #101110;
-    border: 1px solid #c8ff63;
-    font-weight: 700;
-}
+    /* Text inputs, number inputs, and text areas */
+    .stApp input,
+    .stApp textarea {
+        background-color: #20231f !important;
+        color: #f5f5f0 !important;
+        -webkit-text-fill-color: #f5f5f0 !important;
+        border-color: #596052 !important;
+    }
 
-.stApp div.stButton > button[kind="secondary"],
-.stApp div.stDownloadButton > button {
-    background-color: #252923;
-    color: #ffffff;
-    border: 1px solid #737b6a;
-}
+    /* Select boxes */
+    .stApp [data-baseweb="select"] > div {
+        background-color: #20231f !important;
+        border-color: #596052 !important;
+        color: #f5f5f0 !important;
+    }
 
-.stApp div.stButton > button:hover,
-.stApp div.stDownloadButton > button:hover {
-    border-color: #c8ff63;
-    color: #c8ff63;
-}
+    .stApp [data-baseweb="select"] input,
+    .stApp [data-baseweb="select"] span,
+    .stApp [data-baseweb="select"] div {
+        color: #f5f5f0;
+    }
 
-.stApp [data-testid="stDataFrame"] {
-    border: 1px solid #41463d;
-}
-</style>
+    /* Dropdown menu */
+    [data-baseweb="popover"],
+    [data-baseweb="menu"],
+    [role="listbox"],
+    [role="option"] {
+        background-color: #20231f !important;
+        color: #f5f5f0 !important;
+    }
 
-</style>
-""", unsafe_allow_html=True)
+    /* Buttons */
+    .stApp div.stButton > button[kind="primary"] {
+        background-color: #b7ff3c !important;
+        color: #101110 !important;
+        border: 1px solid #b7ff3c !important;
+        font-weight: 700;
+    }
+
+    .stApp div.stButton > button[kind="secondary"],
+    .stApp div.stDownloadButton > button {
+        background-color: #252923 !important;
+        color: #f5f5f0 !important;
+        border: 1px solid #596052 !important;
+    }
+
+    .stApp div.stButton > button:hover,
+    .stApp div.stDownloadButton > button:hover {
+        border-color: #b7ff3c !important;
+    }
+
+    /* Alerts and informational messages */
+    .stApp [data-testid="stAlert"] {
+        background-color: #20231f !important;
+        border: 1px solid #41483a;
+    }
+
+    .stApp [data-testid="stAlert"] p,
+    .stApp [data-testid="stAlert"] span {
+        color: #eeeeea !important;
+    }
+
+    /* Tables and charts */
+    .stApp [data-testid="stDataFrame"],
+    .stApp [data-testid="stTable"] {
+        background-color: #191c18 !important;
+        color: #eeeeea !important;
+    }
+
+    /* Expanders */
+    .stApp [data-testid="stExpander"] {
+        background-color: #191c18 !important;
+        border: 1px solid #383d34;
+    }
+
+    .stApp [data-testid="stExpander"] summary,
+    .stApp [data-testid="stExpander"] summary p {
+        color: #eeeeea !important;
+    }
+
+    /* JSON and code blocks */
+    .stApp pre,
+    .stApp code {
+        background-color: #191c18 !important;
+        color: #d9f7a2 !important;
+    }
+
+    /* Checkbox labels */
+    .stApp [data-testid="stCheckbox"] label {
+        color: #eeeeea !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# --------------------------------------------------
+# SESSION STATE
+# --------------------------------------------------
 
 if "experiment_history" not in st.session_state:
     st.session_state.experiment_history = []
@@ -123,13 +219,25 @@ if "experiment_history" not in st.session_state:
 if "latest_result" not in st.session_state:
     st.session_state.latest_result = None
 
+
+# --------------------------------------------------
+# SIDEBAR NAVIGATION
+# --------------------------------------------------
+
 with st.sidebar:
-    st.markdown('<p class="eyebrow">FAULTLINE / LAB</p>',
-                unsafe_allow_html=True)
+    st.markdown(
+        '<p class="eyebrow">FAULTLINE / LAB</p>',
+        unsafe_allow_html=True,
+    )
 
     page = st.radio(
         "Navigation",
-        ["Overview", "Experiment Lab", "Failure Explorer", "Evaluation"],
+        [
+            "Overview",
+            "Experiment Lab",
+            "Failure Explorer",
+            "Evaluation",
+        ],
         label_visibility="collapsed",
     )
 
@@ -137,10 +245,19 @@ with st.sidebar:
     st.caption(f"ENGINE VERSION {VERSION}")
     st.caption("Automated counterexample discovery")
 
+
+# --------------------------------------------------
+# OVERVIEW
+# --------------------------------------------------
+
 if page == "Overview":
-    st.markdown('<p class="eyebrow">SOFTWARE RELIABILITY LAB</p>',
-                unsafe_allow_html=True)
+    st.markdown(
+        '<p class="eyebrow">SOFTWARE RELIABILITY LAB</p>',
+        unsafe_allow_html=True,
+    )
+
     st.title("Find the failure.")
+
     st.write(
         "Faultline searches for inputs that violate a program's "
         "expected behavior, then attempts to simplify those inputs "
@@ -150,7 +267,10 @@ if page == "Overview":
     left, right = st.columns([1.3, 1])
 
     with left:
-        st.markdown('<div class="panel">', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="panel">',
+            unsafe_allow_html=True,
+        )
         st.subheader("The problem")
         st.write(
             "A program can pass ordinary examples and still fail "
@@ -160,7 +280,10 @@ if page == "Overview":
         st.markdown("</div>", unsafe_allow_html=True)
 
     with right:
-        st.markdown('<div class="panel">', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="panel">',
+            unsafe_allow_html=True,
+        )
         st.subheader("How it works")
         st.write("01  Generate test cases")
         st.write("02  Check behavioral properties")
@@ -169,6 +292,7 @@ if page == "Overview":
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.subheader("Available test subjects")
+
     for name, subject in SUBJECTS.items():
         with st.container(border=True):
             st.markdown(f"**{name}**")
@@ -180,16 +304,27 @@ if page == "Overview":
         "scanner for arbitrary code."
     )
 
+
+# --------------------------------------------------
+# EXPERIMENT LAB
+# --------------------------------------------------
+
 elif page == "Experiment Lab":
-    st.markdown('<p class="eyebrow">01 / EXPERIMENT</p>',
-                unsafe_allow_html=True)
+    st.markdown(
+        '<p class="eyebrow">01 / EXPERIMENT</p>',
+        unsafe_allow_html=True,
+    )
+
     st.title("Experiment Lab")
-    st.write("Configure and run a reproducible testing experiment.")
+    st.write(
+        "Configure and run a reproducible testing experiment."
+    )
 
     subject_name = st.selectbox(
         "System under test",
         list(SUBJECTS.keys()),
     )
+
     st.info(SUBJECTS[subject_name]["description"])
 
     col1, col2 = st.columns(2)
@@ -213,21 +348,26 @@ elif page == "Experiment Lab":
         )
 
     if st.button("Run experiment", type="primary"):
-        with st.spinner("Generating cases and checking properties..."):
+        with st.spinner(
+            "Generating cases and checking properties..."
+        ):
             try:
                 result = run_experiment(
                     subject_name=subject_name,
                     number_of_tests=test_count,
                     seed=int(seed),
                 )
-                report = result_to_dict(result)
 
+                report = result_to_dict(result)
                 st.session_state.latest_result = report
                 st.session_state.experiment_history.append(report)
 
                 st.success("Experiment completed.")
+
             except Exception as exc:
-                st.error(f"Experiment failed: {type(exc).__name__}: {exc}")
+                st.error(
+                    f"Experiment failed: {type(exc).__name__}: {exc}"
+                )
 
     report = st.session_state.latest_result
 
@@ -236,10 +376,26 @@ elif page == "Experiment Lab":
         st.subheader("Latest experiment")
 
         m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Unique cases checked", report["unique_cases_checked"])
-        m2.metric("Passing cases", report["passing_cases"])
-        m3.metric("Failure records", len(report["failures"]))
-        m4.metric("Runtime", f'{report["elapsed_seconds"]:.3f}s')
+
+        m1.metric(
+            "Unique cases checked",
+            report["unique_cases_checked"],
+        )
+
+        m2.metric(
+            "Passing cases",
+            report["passing_cases"],
+        )
+
+        m3.metric(
+            "Failure records",
+            len(report["failures"]),
+        )
+
+        m4.metric(
+            "Runtime",
+            f'{report["elapsed_seconds"]:.3f}s',
+        )
 
         st.caption(
             f'Seed: {report["seed"]} · '
@@ -248,35 +404,55 @@ elif page == "Experiment Lab":
 
         if report["property_counts"]:
             st.subheader("Violations by property")
-            counts = pd.DataFrame([
-                {"Property": key, "Violations": value}
-                for key, value in report["property_counts"].items()
-            ])
+
+            counts = pd.DataFrame(
+                [
+                    {"Property": key, "Violations": value}
+                    for key, value in report["property_counts"].items()
+                ]
+            )
+
             st.bar_chart(counts.set_index("Property"))
 
         st.download_button(
             "Download JSON report",
             data=json.dumps(report, indent=2),
-            file_name=f'faultline_{subject_name.lower().replace(" ", "_")}.json',
+            file_name=(
+                f'faultline_'
+                f'{subject_name.lower().replace(" ", "_")}.json'
+            ),
             mime="application/json",
         )
 
+
+# --------------------------------------------------
+# FAILURE EXPLORER
+# --------------------------------------------------
+
 elif page == "Failure Explorer":
-    st.markdown('<p class="eyebrow">02 / INSPECTION</p>',
-                unsafe_allow_html=True)
+    st.markdown(
+        '<p class="eyebrow">02 / INSPECTION</p>',
+        unsafe_allow_html=True,
+    )
+
     st.title("Failure Explorer")
 
     report = st.session_state.latest_result
 
     if not report:
         st.info("Run an experiment first.")
+
     elif not report["failures"]:
-        st.success("No property violations were found in this experiment.")
+        st.success(
+            "No property violations were found in this experiment."
+        )
+
     else:
         failures = report["failures"]
+
         labels = [
-            f'{i + 1}. {f["property"]} · {i + 1}'
-            for i, f in enumerate(failures)
+            f'{i + 1}. {failure["property"]}'
+            for i, failure in enumerate(failures)
         ]
 
         selected_index = st.selectbox(
@@ -284,6 +460,7 @@ elif page == "Failure Explorer":
             range(len(failures)),
             format_func=lambda i: labels[i],
         )
+
         failure = failures[selected_index]
 
         st.error(failure["explanation"])
@@ -295,21 +472,28 @@ elif page == "Failure Explorer":
             st.subheader("Original input")
             st.json(failure["original_case"])
             st.caption(
-                f'Complexity score: {failure["original_complexity"]}'
+                f'Complexity score: '
+                f'{failure["original_complexity"]}'
             )
 
         with right:
             st.subheader("Minimized input")
             st.json(failure["minimized_case"])
             st.caption(
-                f'Complexity score: {failure["minimized_complexity"]}'
+                f'Complexity score: '
+                f'{failure["minimized_complexity"]}'
             )
 
         reduction = (
             failure["original_complexity"]
             - failure["minimized_complexity"]
         )
-        st.metric("Complexity reduction", f"{reduction:.2f}")
+
+        st.metric(
+            "Complexity reduction",
+            f"{reduction:.2f}",
+        )
+
         st.caption(
             f'Shrinker attempts: {failure["shrink_attempts"]}. '
             "The complexity score is a heuristic, not a measure "
@@ -319,10 +503,19 @@ elif page == "Failure Explorer":
         with st.expander("Full experiment report"):
             st.json(report)
 
+
+# --------------------------------------------------
+# EVALUATION
+# --------------------------------------------------
+
 elif page == "Evaluation":
-    st.markdown('<p class="eyebrow">03 / EVALUATION</p>',
-                unsafe_allow_html=True)
+    st.markdown(
+        '<p class="eyebrow">03 / EVALUATION</p>',
+        unsafe_allow_html=True,
+    )
+
     st.title("Evaluation")
+
     st.write(
         "Review experiments run during this browser session. "
         "Use consistent budgets and multiple seeds when comparing "
@@ -333,19 +526,22 @@ elif page == "Evaluation":
 
     if not history:
         st.info("No experiments recorded in this session yet.")
+
     else:
         rows = []
 
         for report in history:
-            rows.append({
-                "Subject": report["subject"],
-                "Seed": report["seed"],
-                "Requested tests": report["requested_tests"],
-                "Unique cases": report["unique_cases_checked"],
-                "Passing cases": report["passing_cases"],
-                "Failure records": len(report["failures"]),
-                "Runtime (s)": report["elapsed_seconds"],
-            })
+            rows.append(
+                {
+                    "Subject": report["subject"],
+                    "Seed": report["seed"],
+                    "Requested tests": report["requested_tests"],
+                    "Unique cases": report["unique_cases_checked"],
+                    "Passing cases": report["passing_cases"],
+                    "Failure records": len(report["failures"]),
+                    "Runtime (s)": report["elapsed_seconds"],
+                }
+            )
 
         st.dataframe(
             pd.DataFrame(rows),
