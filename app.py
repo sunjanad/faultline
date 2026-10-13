@@ -305,7 +305,7 @@ if page == "Overview":
         unsafe_allow_html=True,
     )
 
-    st.title("Find the failure.")
+    st.title("Find the issue.")
 
     st.write(
         "Faultline searches for inputs that violate a program's "
