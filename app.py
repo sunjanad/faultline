@@ -19,6 +19,52 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+
+# --------------------------------------------------
+# REPORT HELPERS
+# --------------------------------------------------
+
+def get_violation_count(report):
+    """Count individual property violations."""
+    if "property_violation_records" in report:
+        return report["property_violation_records"]
+
+    return sum(report.get("property_counts", {}).values())
+
+
+def get_failing_case_count(report):
+    """Count unique inputs that triggered at least one violation."""
+    if "failing_cases" in report:
+        return report["failing_cases"]
+
+    failures = report.get("failures", [])
+    fingerprints = set()
+
+    for failure in failures:
+        original_case = failure.get("original_case")
+
+        if original_case is not None:
+            fingerprints.add(
+                json.dumps(
+                    original_case,
+                    sort_keys=True,
+                    default=str,
+                )
+            )
+
+    if fingerprints:
+        return len(fingerprints)
+
+    # Older reports may not contain enough information to
+    # distinguish failing inputs from individual violations.
+    return None
+
+
+def get_failure_record_count(report):
+    """Count recorded property-specific failure explanations."""
+    return len(report.get("failures", []))
+
+
 # --------------------------------------------------
 # VISUAL DESIGN
 # --------------------------------------------------
@@ -145,14 +191,13 @@ st.markdown(
 
     /* Buttons */
     .stApp div.stButton > button[kind="primary"],
-.stApp div.stButton > button[kind="primary"] p,
-.stApp div.stButton > button[kind="primary"] span {
-    background-color: #b7ff3c !important;
-    color: #101110 !important;
-    -webkit-text-fill-color: #101110 !important;
-    border: 1px solid #b7ff3c !important;
-    font-weight: 700;
-    
+    .stApp div.stButton > button[kind="primary"] p,
+    .stApp div.stButton > button[kind="primary"] span {
+        background-color: #b7ff3c !important;
+        color: #101110 !important;
+        -webkit-text-fill-color: #101110 !important;
+        border: 1px solid #b7ff3c !important;
+        font-weight: 700;
     }
 
     .stApp div.stButton > button[kind="secondary"],
@@ -379,10 +424,14 @@ elif page == "Experiment Lab":
         st.divider()
         st.subheader("Latest experiment")
 
-        m1, m2, m3, m4 = st.columns(4)
+        failing_cases = get_failing_case_count(report)
+        violation_count = get_violation_count(report)
+        failure_records = get_failure_record_count(report)
+
+        m1, m2, m3, m4, m5 = st.columns(5)
 
         m1.metric(
-            "Unique cases checked",
+            "Unique cases",
             report["unique_cases_checked"],
         )
 
@@ -392,18 +441,24 @@ elif page == "Experiment Lab":
         )
 
         m3.metric(
-            "Failure records",
-            len(report["failures"]),
+            "Failing cases",
+            failing_cases if failing_cases is not None else "N/A",
         )
 
         m4.metric(
+            "Property violations",
+            violation_count,
+        )
+
+        m5.metric(
             "Runtime",
             f'{report["elapsed_seconds"]:.3f}s',
         )
 
         st.caption(
             f'Seed: {report["seed"]} · '
-            f'Requested random tests: {report["requested_tests"]}'
+            f'Requested random tests: {report["requested_tests"]} · '
+            f'Failure explanation records: {failure_records}'
         )
 
         if report["property_counts"]:
@@ -460,7 +515,7 @@ elif page == "Failure Explorer":
         ]
 
         selected_index = st.selectbox(
-            "Select a failure",
+            "Select a failure record",
             range(len(failures)),
             format_func=lambda i: labels[i],
         )
@@ -535,6 +590,8 @@ elif page == "Evaluation":
         rows = []
 
         for report in history:
+            failing_cases = get_failing_case_count(report)
+
             rows.append(
                 {
                     "Subject": report["subject"],
@@ -542,7 +599,12 @@ elif page == "Evaluation":
                     "Requested tests": report["requested_tests"],
                     "Unique cases": report["unique_cases_checked"],
                     "Passing cases": report["passing_cases"],
-                    "Failure records": len(report["failures"]),
+                    "Failing cases": (
+                        failing_cases
+                        if failing_cases is not None
+                        else "N/A"
+                    ),
+                    "Property violations": get_violation_count(report),
                     "Runtime (s)": report["elapsed_seconds"],
                 }
             )
